@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+import "./SMToken.sol";
 
-import "./";
+contract SocialMediaFactory {
+    address[] public communities;
+    string private constant DEFAULT_NAME = "Social Media Community";
+    string private constant DEFAULT_SYMBOL = "SMC";
 
-contract SMFactoryContract {
-    YourERC721Token public nftContract;
+    function createCommunity() external {
+        SMToken newCommunity = new SMToken(DEFAULT_NAME, DEFAULT_SYMBOL);
+        address newTokenAddress = address(newCommunity);
 
-    constructor(address _nftContract) {
-        nftContract = YourERC721Token(_nftContract);
+        // new community to the array
+        communities.push(newTokenAddress);
     }
 
-    function createContent(string memory tokenURI) external {
-        uint256 tokenId = nftContract.totalSupply() + 1;
-        nftContract.mint(msg.sender, tokenId, tokenURI);
+    function getCommunities() external view returns (address[] memory) {
+        return communities;
     }
 }

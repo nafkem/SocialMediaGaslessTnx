@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "./SMToken.sol";
 
 contract SocialMedia {
     address public nftFactoryContract;
@@ -35,20 +35,11 @@ contract SocialMedia {
         emit ContentCreated(msg.sender, tokenId, tokenURI);
     }
 
-    function _getNextTokenId() private returns (uint256) {
-        _tokenIdCounter++;
-        return _tokenIdCounter;
-    }
-
     function createGroup() external onlyAuthenticated {
         uint256 groupId = _generateGroupId();
         _groupOwners[groupId] = msg.sender;
         _groupMembers[groupId].push(msg.sender);
         emit GroupCreated(msg.sender, groupId);
-    }
-
-    function _generateGroupId() private view returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, block.difficulty))) % 1000000;
     }
 
     function addMemberToGroup(uint256 groupId, address member) external onlyAuthenticated {
@@ -68,12 +59,19 @@ contract SocialMedia {
     function executeGaslessTransaction(bytes calldata signature, bytes calldata functionCall) external {
         address signer = _recoverSigner(signature, functionCall);
         require(_authenticatedUsers[signer], "Invalid signature");
-
-        // Execute function call
         (bool success, ) = address(this).delegatecall(functionCall);
         require(success, "Gasless transaction execution failed");
 
         emit GaslessTransactionExecuted(signer, msg.sender, functionCall);
+    }
+
+    function _getNextTokenId() private returns (uint256) {
+        _tokenIdCounter++;
+        return _tokenIdCounter;
+    }
+
+    function _generateGroupId() private view returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender, block.prevrandao))) % 1000000;
     }
 
     function _recoverSigner(bytes memory signature, bytes memory functionCall) private pure returns (address) {
